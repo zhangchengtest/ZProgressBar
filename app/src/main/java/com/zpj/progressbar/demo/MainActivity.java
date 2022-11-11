@@ -1,41 +1,42 @@
 package com.zpj.progressbar.demo;
 
-import android.graphics.Color;
+import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.LinearLayout;
-import android.widget.SeekBar;
-import android.widget.Switch;
-import android.widget.TextView;
 
+import com.google.gson.JsonElement;
 import com.zpj.progressbar.ZProgressBar;
+import com.zpj.progressbar.demo.dto.DownloadDTO;
+import com.zpj.progressbar.demo.utils.GsonUtil;
+import com.zpj.progressbar.demo.utils.HttpUrl;
+import com.zpj.progressbar.demo.utils.Installation;
+import com.zpj.progressbar.demo.utils.OKHttp3Util;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import okhttp3.Request;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String TAG = MainActivity.class.getSimpleName();
+
     private ZProgressBar progressBar;
     private Button restartBtn;
+
+    private static final String BROADCAST_ACTION_DISC = "com.cunw.cloud.peer.download.broadcast";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        LinearLayout llContainer = findViewById(R.id.ll_container);
-
-        ZProgressBar custom = new ZProgressBar(this);
-        custom.setProgressBarWidth(getResources().getDisplayMetrics().density * 3.5f);
-        custom.setBorderWidth(getResources().getDisplayMetrics().density * 3.5f);
-        custom.setProgressBarRadius(getResources().getDisplayMetrics().density * 12);
-        custom.setBorderColor(Color.parseColor("#c0f2d9"));
-        custom.setProgressBarColor(Color.parseColor("#2ad181"));
-
-        llContainer.addView(custom);
 
 
         progressBar = findViewById(R.id.progress_test);
@@ -44,166 +45,76 @@ public class MainActivity extends AppCompatActivity {
         restartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                start();
-            }
-        });
-        start();
-
-//        Timer timer = new Timer();
-//        TimerTask task = new TimerTask() {
-//            @Override
-//            public void run() {
-//                progressBar.setProgress(progressBar.getProgress() + 4);
-//            }
-//        };
-//        timer.schedule(task, 0, 100);
-
-
-
-        ZProgressBar bar = findViewById(R.id.progress_test2);
-        Switch switchIntermediate = findViewById(R.id.switch_intermediate);
-        TextView tvProgressBarWidth = findViewById(R.id.tv_progress_bar_width);
-        TextView tvProgress = findViewById(R.id.tv_progress);
-        TextView tvMaxProgress = findViewById(R.id.tv_max_progress);
-        TextView tvMinProgress = findViewById(R.id.tv_min_progress);
-        SeekBar progressBarWidthSeekBar = findViewById(R.id.seek_progress_bar_width);
-        SeekBar progressSeekBar = findViewById(R.id.seek_progress);
-        SeekBar maxProgressSeekBar = findViewById(R.id.seek_max_progress);
-        SeekBar minProgressSeekBar = findViewById(R.id.seek_min_progress);
-
-
-        switchIntermediate.setChecked(bar.isIntermediateMode());
-        switchIntermediate.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                progressSeekBar.setEnabled(!b);
-                minProgressSeekBar.setEnabled(b);
-                bar.setIsIntermediateMode(b);
-                if (!b) {
-                    tvProgress.setText("Progress(" + (int) bar.getProgress() + ")");
-                }
+                DownloadDTO dto = new DownloadDTO();
+                dto.setMachineCode(Installation.id());
+                dto.setFilePath("http://blog.punengshuo.com/app-2.0.4.zip");
+                download(dto);
             }
         });
 
-        bar.post(new Runnable() {
-            @Override
-            public void run() {
-                progressBarWidthSeekBar.setMax((int) bar.getRadius() - 1);
-                progressBarWidthSeekBar.setProgress((int) bar.getProgressBarWidth());
-                tvProgressBarWidth.setText("ProgressBar Width(" + (int) bar.getProgressBarWidth() + ")");
-                progressBarWidthSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                        bar.setProgressBarWidth(i);
-                        tvProgressBarWidth.setText("ProgressBar Width(" + i + ")");
-                    }
+        // 注册广播接收
+        BroadcastReceiver receiveBroadCast = new ReceiveBroadCast();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BROADCAST_ACTION_DISC); // 只有持有相同的action的接受者才能接收此广播
+        registerReceiver(receiveBroadCast, filter);
 
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-
-                    }
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-
-                    }
-                });
-            }
-        });
-
-
-
-
-        progressSeekBar.setProgress((int) bar.getProgress());
-        progressSeekBar.setEnabled(!bar.isIntermediateMode());
-        progressSeekBar.setMax((int) bar.getMaxProgress());
-        tvProgress.setText("Progress(" + progressSeekBar.getProgress() + ")");
-        progressSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                bar.setProgress(i);
-                tvProgress.setText("Progress(" + i+ ")");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-        maxProgressSeekBar.setProgress((int) bar.getMaxProgress());
-        tvMaxProgress.setText("Max Progress(" + maxProgressSeekBar.getProgress() + ")");
-        maxProgressSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                bar.setMaxProgress(i);
-                progressSeekBar.setMax(i);
-                minProgressSeekBar.setMax(i);
-                tvMaxProgress.setText("Max Progress(" + i + ")");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-        minProgressSeekBar.setProgress((int) bar.getMinProgress());
-        minProgressSeekBar.setMax((int) bar.getMaxProgress());
-        minProgressSeekBar.setEnabled(bar.isIntermediateMode());
-        tvMinProgress.setText("Min Progress(" + minProgressSeekBar.getProgress() + ")");
-        minProgressSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                bar.setMinProgress(i);
-                tvMinProgress.setText("Min Progress(" + i + ")");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
+        requestMyPermissions();
 
     }
 
-    private void start() {
-        restartBtn.setEnabled(false);
-        new Thread(new Runnable() {
+    private void download(  DownloadDTO dto) {
+//        final Resources resources = getResources();
+//        final SharedPreferencesUtil sp = new SharedPreferencesUtil(activity);
+        String token = "test-token";
+
+        Log.i(TAG, "enter here " );
+
+        String json = GsonUtil.GsonString(dto);
+        OKHttp3Util.postAsyn(HttpUrl.DOWNLOAD_REQUEST, token, json, new OKHttp3Util.ResultCallback<JsonElement>() {
             @Override
-            public void run() {
-                try {
-                    for (int i = 1; i <= 25; i++) {
-                        Thread.sleep(100);
-                        progressBar.setProgress(i * 4);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        restartBtn.setEnabled(true);
-                    }
-                });
+            public void onError(Request request, Exception e) {
+                Log.e(TAG, "请求失败=" + e.toString());
             }
-        }).start();
+
+            @Override
+            public void onResponse(JsonElement response) {
+                Log.e(TAG,"成功--->" + response.toString());
+            }
+        });
+        Log.i(TAG, "enter end " );
+    }
+
+
+    public class ReceiveBroadCast extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+//            Toast.makeText(MainActivity.this,
+//                    "receive broadcast", Toast.LENGTH_LONG).show();
+            progressBar.setProgress(intent.getExtras().getInt("count"));
+        }
+
+    }
+
+    private void requestMyPermissions() {
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            //没有授权，编写申请权限代码
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
+        } else {
+            Log.d(TAG, "requestMyPermissions: 有写SD权限");
+        }
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            //没有授权，编写申请权限代码
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 100);
+        } else {
+            Log.d(TAG, "requestMyPermissions: 有读SD权限");
+        }
+
     }
 
 }
