@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    >
+
+
+
+    <TableLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:gravity="center">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            >
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_span="2"
+                android:layout_weight="1"
+                android:maxLines="2"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/size"
+                android:layout_column="1"
+                android:layout_gravity="start|center"
+                android:layout_weight="1"
+                android:gravity="start|center"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/date"
+                android:layout_column="2"
+                android:layout_gravity="center|end"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:gravity="center|end"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall" />
+
+        </TableRow>
+    </TableLayout>
+
+
+
+
+
+</LinearLayout>

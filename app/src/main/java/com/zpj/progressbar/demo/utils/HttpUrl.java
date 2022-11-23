@@ -1,12 +1,14 @@
 package com.zpj.progressbar.demo.utils;
 
+import com.zpj.progressbar.demo.BuildConfig;
+
 /**
  * Created by Atom on 2017/10/26.
  */
 
 public class HttpUrl {
 
-    public static final String BASE_URL="http://192.168.71.255:7768/v1/peer/web/";
+    public static final String BASE_URL = "/v1/peer/web/";
 
     //
     public static final String MACHINE_ADD = BASE_URL + "machines/";

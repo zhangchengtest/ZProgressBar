@@ -7,7 +7,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -56,11 +55,11 @@ public class ZProgressBar extends View {
         this(context, null);
     }
 
-    public ZProgressBar(Context context, @Nullable AttributeSet attrs) {
+    public ZProgressBar(Context context,  AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public ZProgressBar(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ZProgressBar(Context context,  AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
         int defaultProgressBarWidth = (int) (context.getResources().getDisplayMetrics().density * 4 + 0.5f);
@@ -354,7 +353,7 @@ public class ZProgressBar extends View {
 
     public int getColorPrimary(){
         TypedValue typedValue = new TypedValue();
-        getContext().getTheme().resolveAttribute(R.attr.colorPrimary, typedValue, true);
+        getContext().getTheme().resolveAttribute(R.attr.zbp_progress_bar_color, typedValue, true);
         return typedValue.data;
     }
 
